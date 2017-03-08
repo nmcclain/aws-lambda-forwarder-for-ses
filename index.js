@@ -4,6 +4,7 @@ var version = "0.1.000";
 var aws = require("aws-sdk");
 var uuid = require("node-uuid");
 var async = require("async");
+var contentType = require("content-type");
 
 var ses = new aws.SES();
 var s3 = new aws.S3();
@@ -75,6 +76,17 @@ exports.handler = function(event, context) {
 
         var rawEmail = data.Body.toString()
         mailparser.on("end", function(parsedmail) {
+            var charset = "UTF-8";
+            var contentTypeHeader = parsedmail.headers['content-type'];
+            if (contentTypeHeader) {
+                var parsed = contentType.parse(contentTypeHeader);
+                if (parsed.parameters.charset) {
+                    charset = parsed.parameters.charset;
+                }
+            }
+            if (config.debug) {
+                console.log("Charset: " + charset);
+            }
             // look for a matching rule
             var deliveryRule = null;
             for (var rule in config.rules) {
@@ -106,12 +118,12 @@ exports.handler = function(event, context) {
                 Message: {
                     Subject: {
                         Data: subject,
-                        Charset: "UTF-8"
+                        Charset: charset
                     },
                     Body: {
                         Text: {
                             Data: parsedmail.text,
-                            Charset: "UTF-8"
+                            Charset: charset
                         }
                     }
                 }
@@ -119,7 +131,7 @@ exports.handler = function(event, context) {
             if (parsedmail.html && parsedmail.html.length > 0) {
                 params.Message.Body.Html = {
                     Data: parsedmail.html,
-                    Charset: "UTF-8"
+                    Charset: charset
                 };
             }
 

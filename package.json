@@ -6,6 +6,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "aws-sdk": "^2.2.22",
+    "content-type": "^1.0.2",
     "mailparser": "^0.5.3",
     "node-uuid": "^1.4.7"
   },
